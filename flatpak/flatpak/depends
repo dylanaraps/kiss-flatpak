@@ -3,7 +3,6 @@ gdk-pixbuf
 glib
 gpgme
 libarchive
-libcap
 libsoup
 libxml2
 ostree

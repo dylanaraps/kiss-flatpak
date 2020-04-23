@@ -1,7 +1,14 @@
 #!/bin/sh -e
 
-patch -p1 < fix-musl.patch
-patch -p1 < bubblewrap-musl.patch
+for patch in *.patch; do
+    patch -p1 < "$patch"
+done
+
+# Remove libcap dependency (used solely when bwrap is suid
+# root). User namespaces are much better, should be used
+# in place of libcap and are free.
+sed -i 's/as_fn_error.*libcap/: "/g'          configure
+sed -i 's/as_fn_error.*capability\.h/: "/g' configure
 
 # Remove fuse2 dependency (used solely with root "system-helper"
 # daemon for file transfer. Unneeded in our case and drops the

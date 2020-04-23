@@ -1,0 +1,274 @@
+diff --git a/app/flatpak-builtins-enter.c b/app/flatpak-builtins-enter.c
+index 4a7c51d..3cd365f 100644
+--- a/app/flatpak-builtins-enter.c
++++ b/app/flatpak-builtins-enter.c
+@@ -36,21 +36,11 @@
+ #include "flatpak-dbus-generated.h"
+ #include "flatpak-run-private.h"
+ #include "flatpak-instance.h"
+-#include <sys/capability.h>
+ 
+ static GOptionEntry options[] = {
+   { NULL }
+ };
+ 
+-static void
+-drop_all_caps (void)
+-{
+-  struct __user_cap_header_struct hdr = { _LINUX_CAPABILITY_VERSION_3, 0 };
+-  struct __user_cap_data_struct data[2] = { { 0 } };
+-
+-  capset (&hdr, data);
+-}
+-
+ gboolean
+ flatpak_builtin_enter (int           argc,
+                        char        **argv,
+@@ -226,8 +216,6 @@ flatpak_builtin_enter (int           argc,
+   if (setuid (uid))
+     return flatpak_fail (error, _("Can't switch uid"));
+ 
+-  drop_all_caps ();
+-
+   envp_array = g_ptr_array_new_with_free_func (g_free);
+   for (e = environment; e < environment + environment_len; e = e + strlen (e) + 1)
+     {
+diff --git a/bubblewrap/bubblewrap.c b/bubblewrap/bubblewrap.c
+index b3d52bc..59b0076 100644
+--- a/bubblewrap/bubblewrap.c
++++ b/bubblewrap/bubblewrap.c
+@@ -28,7 +28,6 @@
+ #include <sys/eventfd.h>
+ #include <sys/fsuid.h>
+ #include <sys/signalfd.h>
+-#include <sys/capability.h>
+ #include <sys/prctl.h>
+ #include <linux/sched.h>
+ #include <linux/seccomp.h>
+@@ -586,70 +585,17 @@ static uint32_t requested_caps[2] = {0, 0};
+ static void
+ set_required_caps (void)
+ {
+-  struct __user_cap_header_struct hdr = { _LINUX_CAPABILITY_VERSION_3, 0 };
+-  struct __user_cap_data_struct data[2] = { { 0 } };
+-
+-  /* Drop all non-require capabilities */
+-  data[0].effective = REQUIRED_CAPS_0;
+-  data[0].permitted = REQUIRED_CAPS_0;
+-  data[0].inheritable = 0;
+-  data[1].effective = REQUIRED_CAPS_1;
+-  data[1].permitted = REQUIRED_CAPS_1;
+-  data[1].inheritable = 0;
+-  if (capset (&hdr, data) < 0)
+-    die_with_error ("capset failed");
+ }
+ 
+ static void
+ drop_all_caps (bool keep_requested_caps)
+ {
+-  struct __user_cap_header_struct hdr = { _LINUX_CAPABILITY_VERSION_3, 0 };
+-  struct __user_cap_data_struct data[2] = { { 0 } };
+-
+-  if (keep_requested_caps)
+-    {
+-      /* Avoid calling capset() unless we need to; currently
+-       * systemd-nspawn at least is known to install a seccomp
+-       * policy denying capset() for dubious reasons.
+-       * <https://github.com/projectatomic/bubblewrap/pull/122>
+-       */
+-      if (!opt_cap_add_or_drop_used && real_uid == 0)
+-        {
+-          assert (!is_privileged);
+-          return;
+-        }
+-      data[0].effective = requested_caps[0];
+-      data[0].permitted = requested_caps[0];
+-      data[0].inheritable = requested_caps[0];
+-      data[1].effective = requested_caps[1];
+-      data[1].permitted = requested_caps[1];
+-      data[1].inheritable = requested_caps[1];
+-    }
+-
+-  if (capset (&hdr, data) < 0)
+-    {
+-      /* While the above logic ensures we don't call capset() for the primary
+-       * process unless configured to do so, we still try to drop privileges for
+-       * the init process unconditionally. Since due to the systemd seccomp
+-       * filter that will fail, let's just ignore it.
+-       */
+-      if (errno == EPERM && real_uid == 0 && !is_privileged)
+-        return;
+-      else
+-        die_with_error ("capset failed");
+-    }
+ }
+ 
+ static bool
+ has_caps (void)
+ {
+-  struct __user_cap_header_struct hdr = { _LINUX_CAPABILITY_VERSION_3, 0 };
+-  struct __user_cap_data_struct data[2] = { { 0 } };
+-
+-  if (capget (&hdr, data)  < 0)
+-    die_with_error ("capget failed");
+-
+-  return data[0].permitted != 0 || data[1].permitted != 0;
++  return 0;
+ }
+ 
+ /* Most of the code here is used both to add caps to the ambient capabilities
+@@ -659,49 +605,6 @@ has_caps (void)
+ static void
+ prctl_caps (uint32_t *caps, bool do_cap_bounding, bool do_set_ambient)
+ {
+-  unsigned long cap;
+-
+-  /* We ignore both EINVAL and EPERM, as we are actually relying
+-   * on PR_SET_NO_NEW_PRIVS to ensure the right capabilities are
+-   * available.  EPERM in particular can happen with old, buggy
+-   * kernels.  See:
+-   *  https://github.com/projectatomic/bubblewrap/pull/175#issuecomment-278051373
+-   *  https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/security/commoncap.c?id=160da84dbb39443fdade7151bc63a88f8e953077
+-   */
+-  for (cap = 0; cap <= CAP_LAST_CAP; cap++)
+-    {
+-      bool keep = FALSE;
+-      if (cap < 32)
+-        {
+-          if (CAP_TO_MASK_0 (cap) & caps[0])
+-            keep = TRUE;
+-        }
+-      else
+-        {
+-          if (CAP_TO_MASK_1 (cap) & caps[1])
+-            keep = TRUE;
+-        }
+-
+-      if (keep && do_set_ambient)
+-        {
+-#ifdef PR_CAP_AMBIENT
+-          int res = prctl (PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, cap, 0, 0);
+-          if (res == -1 && !(errno == EINVAL || errno == EPERM))
+-            die_with_error ("Adding ambient capability %ld", cap);
+-#else
+-          /* We ignore the EINVAL that results from not having PR_CAP_AMBIENT
+-           * in the current kernel at runtime, so also ignore not having it
+-           * in the current kernel headers at compile-time */
+-#endif
+-        }
+-
+-      if (!keep && do_cap_bounding)
+-        {
+-          int res = prctl (PR_CAPBSET_DROP, cap, 0, 0, 0);
+-          if (res == -1 && !(errno == EINVAL || errno == EPERM))
+-            die_with_error ("Dropping capability %ld from bounds", cap);
+-        }
+-    }
+ }
+ 
+ static void
+@@ -748,10 +651,6 @@ acquire_privs (void)
+   /* Are we setuid ? */
+   if (real_uid != euid)
+     {
+-      if (euid != 0)
+-        die ("Unexpected setuid user %d, should be 0", euid);
+-
+-      is_privileged = TRUE;
+       /* We want to keep running as euid=0 until at the clone()
+        * operation because doing so will make the user namespace be
+        * owned by root, which makes it not ptrace:able by the user as
+@@ -763,19 +662,7 @@ acquire_privs (void)
+        * escalated filesystem access before the clone(), so we set
+        * fsuid to the uid.
+        */
+-      if (setfsuid (real_uid) < 0)
+-        die_with_error ("Unable to set fsuid");
+-
+-      /* setfsuid can't properly report errors, check that it worked (as per manpage) */
+-      new_fsuid = setfsuid (-1);
+-      if (new_fsuid != real_uid)
+-        die ("Unable to set fsuid (was %d)", (int)new_fsuid);
+-
+-      /* We never need capabilities after execve(), so lets drop everything from the bounding set */
+-      drop_cap_bounding_set (TRUE);
+-
+-      /* Keep only the required capabilities for setup */
+-      set_required_caps ();
++      die_with_error ("suid disabled, enable user namespaces in the kernel.");
+     }
+   else if (real_uid != 0 && has_caps ())
+     {
+@@ -786,18 +673,6 @@ acquire_privs (void)
+     }
+   else if (real_uid == 0)
+     {
+-      /* If our uid is 0, default to inheriting all caps; the caller
+-       * can drop them via --cap-drop.  This is used by at least rpm-ostree.
+-       * Note this needs to happen before the argument parsing of --cap-drop.
+-       */
+-      struct __user_cap_header_struct hdr = { _LINUX_CAPABILITY_VERSION_3, 0 };
+-      struct __user_cap_data_struct data[2] = { { 0 } };
+-
+-      if (capget (&hdr, data) < 0)
+-        die_with_error ("capget (for uid == 0) failed");
+-
+-      requested_caps[0] = data[0].effective;
+-      requested_caps[1] = data[1].effective;
+     }
+ 
+   /* Else, we try unprivileged user namespaces */
+@@ -2043,52 +1918,16 @@ parse_args_recurse (int          *argcp,
+         }
+       else if (strcmp (arg, "--cap-add") == 0)
+         {
+-          cap_value_t cap;
+           if (argc < 2)
+             die ("--cap-add takes an argument");
+ 
+-          opt_cap_add_or_drop_used = TRUE;
+-
+-          if (strcasecmp (argv[1], "ALL") == 0)
+-            {
+-              requested_caps[0] = requested_caps[1] = 0xFFFFFFFF;
+-            }
+-          else
+-            {
+-              if (cap_from_name (argv[1], &cap) < 0)
+-                die ("unknown cap: %s", argv[1]);
+-
+-              if (cap < 32)
+-                requested_caps[0] |= CAP_TO_MASK_0 (cap);
+-              else
+-                requested_caps[1] |= CAP_TO_MASK_1 (cap - 32);
+-            }
+-
+           argv += 1;
+           argc -= 1;
+         }
+       else if (strcmp (arg, "--cap-drop") == 0)
+         {
+-          cap_value_t cap;
+           if (argc < 2)
+-            die ("--cap-drop takes an argument");
+-
+-          opt_cap_add_or_drop_used = TRUE;
+-
+-          if (strcasecmp (argv[1], "ALL") == 0)
+-            {
+-              requested_caps[0] = requested_caps[1] = 0;
+-            }
+-          else
+-            {
+-              if (cap_from_name (argv[1], &cap) < 0)
+-                die ("unknown cap: %s", argv[1]);
+-
+-              if (cap < 32)
+-                requested_caps[0] &= ~CAP_TO_MASK_0 (cap);
+-              else
+-                requested_caps[1] &= ~CAP_TO_MASK_1 (cap - 32);
+-            }
++            die ("--cap-add takes an argument");
+ 
+           argv += 1;
+           argc -= 1;
