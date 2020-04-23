@@ -1,1 +1,2 @@
 https://github.com/hughsie/appstream-glib/archive/appstream_glib_0_7_17.tar.gz
+patches/no-uuid.patch

@@ -1,5 +1,7 @@
 #!/bin/sh -e
 
+patch -p1 < no-uuid.patch
+
 export DESTDIR="$1"
 
 # Don't build tests.
