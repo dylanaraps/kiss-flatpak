@@ -5,12 +5,17 @@ TODO
 - [x] Clean up builds.
 - [x] Document needed changes to community packages.
 - [ ] Remove as many dependencies as possible.
-- [ ] Finalize dependencies.
+    - Bye bye `fuse2`, `mozjs`, `polkit`, `libuuid`, etc.
+    - [ ] libcap?
+    - [ ] ???????
+- [x] Finalize dependencies.
 
 INSTRUCTIONS
 
 ```
 # NOTE: You must have user namespaces enabled in your kernel.
+#       Your other alternative is to give bubblewrap suid.
+#       chmod u+s /usr/libexec/flatpak-bwrap
 
 # NOTE: The community repository must also be enabled.
 -> git clone https://github.com/dylanaraps/kiss-flatpak
