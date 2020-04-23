@@ -10,6 +10,7 @@ TODO
 INSTRUCTIONS
 
 ```
+# NOTE: The community repository must also be enabled.
 -> git clone https://github.com/dylanaraps/kiss-flatpak
 -> export KISS_PATH=/path/to/kiss-flatpak/flatpak:$KISS_PATH
 
