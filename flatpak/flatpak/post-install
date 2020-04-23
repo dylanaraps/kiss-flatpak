@@ -1,3 +1,0 @@
-#!/bin/sh
-
-chmod u+s "$KISS_ROOT/usr/libexec/flatpak-bwrap"
