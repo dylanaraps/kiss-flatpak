@@ -32,3 +32,10 @@ INSTRUCTIONS
 -> flatpak install --user gimp
 -> flatpak run --user org.gimp.GIMP
 ```
+
+TIPS
+
+```
+# This may need to be set for applications using pulseaudio.
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+```
