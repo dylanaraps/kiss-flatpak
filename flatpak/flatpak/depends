@@ -1,7 +1,7 @@
 appstream-glib
 gdk-pixbuf
+glib
 gpgme
-json-glib
 libarchive
 libcap
 libsoup
