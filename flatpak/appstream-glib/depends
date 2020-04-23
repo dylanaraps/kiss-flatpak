@@ -1,5 +1,6 @@
 cmake
 glib
 gperf
+json-glib
 libarchive
 libsoup
