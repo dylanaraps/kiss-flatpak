@@ -71,6 +71,5 @@ make DESTDIR="$1" install
     rm -rf "$1/usr/share"
     rm -rf "$1/usr/lib"
     rm -rf "$1/usr/include"
-    rm  -f "$1/usr/libexec/flatpak-dbus-proxy"
     rm  -f "$1/usr/libexec/revokefs-fuse"
 }
