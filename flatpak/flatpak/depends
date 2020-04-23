@@ -1,0 +1,11 @@
+appstream-glib
+fuse2
+gdk-pixbuf
+gpgme
+json-glib
+libarchive
+libcap
+libsoup
+libxml2
+ostree
+python

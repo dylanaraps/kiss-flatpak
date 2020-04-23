@@ -1,0 +1,11 @@
+#!/bin/sh -e
+
+./configure \
+    --prefix=/usr \
+    --libdir=/usr/lib \
+    --enable-lib \
+    --enable-util \
+    --disable-example
+
+make
+make DESTDIR="$1" install
