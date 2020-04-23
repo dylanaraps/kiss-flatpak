@@ -1,6 +1,5 @@
 #!/bin/sh -e
 
-sh >/dev/tty
 ./configure \
     --prefix=/usr \
     --disable-nls \
