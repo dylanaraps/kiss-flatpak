@@ -12,6 +12,7 @@ meson \
     --sysconfdir=/etc \
     --mandir=/usr/share/man \
     -Ddep11=false \
+    -Dman=false \
     -Dstemmer=false \
     -Dintrospection=false \
     -Drpm=false \
