@@ -42,7 +42,12 @@ export PYTHONPATH
 make
 make DESTDIR="$1" install
 
-# Remove dbus/systemd/unwanted stuff.
-rm -rf "$1/usr/lib/systemd"
-rm -rf "$1/usr/share/dbus-1"
-rm -rf "$1/etc/profile.d"
+# Remove dbus/systemd/libraries (unneeded stuff).
+# This is a dumb warning which appears only when /usr/share does.
+# shellcheck disable=2115
+{
+    rm -rf "$1/etc"
+    rm -rf "$1/usr/share"
+    rm -rf "$1/usr/lib"
+    rm -rf "$1/usr/include"
+}
