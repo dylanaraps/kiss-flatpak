@@ -33,9 +33,11 @@ export PYTHONPATH
     --sysconfdir=/etc \
     --without-systemd \
     --disable-system-helper \
+    --disable-nls \
     --disable-seccomp \
     --disable-sandboxed-triggers \
     --disable-documentation \
+    --disable-introspection \
     --with-priv-mode=none
 
 make
