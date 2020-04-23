@@ -2,8 +2,8 @@
 
 TODO
 
-- [ ] Clean up builds.
-- [ ] Document needed changes to community packages.
+- [x] Clean up builds.
+- [x] Document needed changes to community packages.
 - [ ] Remove as many dependencies as possible.
 - [ ] Finalize dependencies.
 
