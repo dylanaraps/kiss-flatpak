@@ -6,7 +6,7 @@ TODO
 - [x] Document needed changes to community packages.
 - [ ] Remove as many dependencies as possible.
     - Bye bye `fuse2`, `mozjs`, `polkit`, `libuuid`, etc.
-    - [ ] libcap?
+    - [x] libcap?
     - [ ] ???????
 - [x] Finalize dependencies.
 
