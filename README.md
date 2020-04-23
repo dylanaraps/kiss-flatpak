@@ -10,6 +10,12 @@ TODO
     - [ ] ???????
 - [x] Finalize dependencies.
 
+ISSUES
+
+- [ ] No audio in flatpaks expecting pulse.
+    - Try apulse??
+    - ???
+
 INSTRUCTIONS
 
 ```
