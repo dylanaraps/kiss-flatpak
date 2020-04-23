@@ -1,9 +1,10 @@
 #!/bin/sh -e
 
-sed -i "s/\${tests}//" Makefile.in
-
 ./configure \
-    --prefix=/usr
+    --prefix=/usr \
+    --disable-nls \
+    --disable-gpg-test \
+    --disable-gpgconf-test
 
 make
 make DESTDIR="$1" install
