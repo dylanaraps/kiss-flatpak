@@ -3,7 +3,8 @@
 ./configure \
     --prefix=/usr \
     --disable-gtk-doc \
-    --disable-man     
+    --disable-man \
+    --disable-rofiles-fuse
 
 make
 make DESTDIR="$1" install
