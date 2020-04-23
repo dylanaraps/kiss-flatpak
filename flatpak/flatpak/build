@@ -33,7 +33,6 @@ export PYTHONPATH
     --sysconfdir=/etc \
     --without-systemd \
     --disable-system-helper \
-    --disable-xauth \
     --disable-seccomp \
     --disable-sandboxed-triggers \
     --disable-documentation \
