@@ -3,6 +3,19 @@
 patch -p1 < fix-musl.patch
 patch -p1 < bubblewrap-musl.patch
 
+# Remove fuse2 dependency (used solely with root "system-helper"
+# daemon for file transfer. Unneeded in our case and drops the
+# old fuse version.
+sed -i 's/as_fn_error.*fuse/: "/g' configure
+
+# Turn the fuse2 filesystem into a C program which does nothing.
+# This is the easiest way to "turn off" revokefs as there's
+# no officials support for doing so.
+cat <<EOF > revokefs/main.c
+int main() { return 0; }
+EOF
+: > revokefs/writer.c
+
 # Install python-pyparsing which is solely needed for
 # flatpak and thus contained in this build.
 {
@@ -51,4 +64,6 @@ make DESTDIR="$1" install
     rm -rf "$1/usr/share"
     rm -rf "$1/usr/lib"
     rm -rf "$1/usr/include"
+    rm  -f "$1/usr/libexec/flatpak-dbus-proxy"
+    rm  -f "$1/usr/libexec/revokefs-fuse"
 }
