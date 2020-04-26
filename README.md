@@ -1,21 +1,5 @@
 # flatpak for kiss
 
-TODO
-
-- [x] Clean up builds.
-- [x] Document needed changes to community packages.
-- [ ] Remove as many dependencies as possible.
-    - Bye bye `fuse2`, `mozjs`, `polkit`, `libuuid`, etc.
-    - [x] libcap?
-    - [ ] ???????
-- [x] Finalize dependencies.
-
-ISSUES
-
-- [ ] No audio in flatpaks expecting pulse.
-    - Try apulse??
-    - ???
-
 INSTRUCTIONS
 
 ```
@@ -33,9 +17,6 @@ INSTRUCTIONS
 -> flatpak run --user org.gimp.GIMP
 ```
 
-TIPS
+ISSUES
 
-```
-# This may need to be set for applications using pulseaudio.
-export XDG_RUNTIME_DIR=/run/user/$(id -u)
-```
+- [ ] No audio in flatpaks expecting a running PulseAudio server on the host.
