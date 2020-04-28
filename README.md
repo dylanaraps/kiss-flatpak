@@ -20,3 +20,8 @@ INSTRUCTIONS
 ISSUES
 
 - [ ] No audio in flatpaks expecting a running PulseAudio server on the host.
+
+
+OTHER FLATPAK REPOSITORIES
+
+- https://flatpak.citra-emu.org/
