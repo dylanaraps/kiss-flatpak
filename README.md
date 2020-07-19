@@ -4,6 +4,7 @@ INSTRUCTIONS
 
 ```
 # NOTE: You must have user namespaces enabled in your kernel.
+-> CONFIG_USER_NS=y
 
 # NOTE: The community repository must also be enabled.
 -> git clone https://github.com/dylanaraps/kiss-flatpak
