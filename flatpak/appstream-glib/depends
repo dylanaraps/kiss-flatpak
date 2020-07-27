@@ -1,3 +1,5 @@
+gdk-pixbuf
+gtk+3
 cmake
 glib
 gperf
